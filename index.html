@@ -1,25 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>Session Login Demo</title>
+  <meta charset="UTF-8" />
+  <title>Session 登录演示</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      padding: 40px;
+      background: #f5f6f8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
     .box {
-      max-width: 360px;
-      margin: auto;
       background: #fff;
       padding: 24px;
+      width: 320px;
       border-radius: 8px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,.1);
     }
-    input, button {
+    h2 {
+      margin-top: 0;
+      text-align: center;
+    }
+    input {
       width: 100%;
       padding: 10px;
+      margin: 8px 0;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+    .info {
+      font-size: 14px;
+      color: #555;
+      word-break: break-all;
       margin-top: 12px;
     }
   </style>
@@ -27,38 +46,65 @@
 <body>
 
 <div class="box" id="loginBox">
-  <h2>Login</h2>
-  <input id="user" placeholder="Username">
-  <button onclick="login()">Login</button>
+  <h2>登录</h2>
+  <input id="username" placeholder="用户名" />
+  <input id="password" type="password" placeholder="密码" />
+  <button onclick="login()">登录</button>
 </div>
 
-<div class="box" id="welcomeBox" style="display:none;">
-  <h2>Welcome</h2>
-  <p id="welcomeUser"></p>
-  <button onclick="logout()">Logout</button>
+<div class="box" id="appBox" style="display:none;">
+  <h2>已登录</h2>
+  <div class="info" id="userInfo"></div>
+  <button onclick="logout()">退出登录</button>
 </div>
 
 <script>
+  const TOKEN_KEY = 'session_token';
+  const USER_KEY = 'session_user';
+
+  function generateToken(username, password) {
+    const raw = username + ':' + password + ':' + Date.now();
+    return btoa(raw);
+  }
+
   function login() {
-    const user = document.getElementById('user').value.trim();
-    if (!user) return alert('Enter username');
-    sessionStorage.setItem('user', user);
-    render();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (!username || !password) {
+      alert('请输入用户名和密码');
+      return;
+    }
+
+    const token = generateToken(username, password);
+
+    sessionStorage.setItem(TOKEN_KEY, token);
+    sessionStorage.setItem(USER_KEY, username);
+
+    showApp();
   }
 
   function logout() {
-    sessionStorage.removeItem('user');
-    render();
+    sessionStorage.clear();
+    location.reload();
   }
 
-  function render() {
-    const user = sessionStorage.getItem('user');
-    document.getElementById('loginBox').style.display = user ? 'none' : 'block';
-    document.getElementById('welcomeBox').style.display = user ? 'block' : 'none';
-    if (user) document.getElementById('welcomeUser').innerText = user;
+  function showApp() {
+    const token = sessionStorage.getItem(TOKEN_KEY);
+    const user = sessionStorage.getItem(USER_KEY);
+
+    if (!token || !user) return;
+
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('appBox').style.display = 'block';
+
+    document.getElementById('userInfo').innerHTML = `
+      用户名：<b>${user}</b><br>
+      Session Token：<br>${token}
+    `;
   }
 
-  render();
+  showApp();
 </script>
 
 </body>
